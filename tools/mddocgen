@@ -1,0 +1,20 @@
+#! /usr/bin/env bash
+
+SOURCE_BASEDIR="${SOURCE_BASEDIR:-$PWD/sources}"
+SCRIPT_DIR="${SCRIPT_DIR:-$PWD/tools}"
+BUILD_BASEDIR="${BUILD_BASEDIR:-$PWD/doc}"
+
+mkdir -p "$BUILD_BASEDIR"
+
+find "$SOURCE_BASEDIR" -iname "*.hpp" | while read SOURCE_FILE;
+do
+	SOURCE_BASENAME=$(basename "$SOURCE_FILE" .hpp)
+	SOURCE_DIRNAME=$(dirname "$SOURCE_FILE")
+
+	DOC_PREFIX=$BUILD_BASEDIR/$(python -c "import os.path; print os.path.relpath('$SOURCE_DIRNAME', '$SOURCE_BASEDIR')")
+	DOC_FILE="$DOC_PREFIX/${SOURCE_BASENAME}.html"
+
+	mkdir -p "$DOC_PREFIX"
+	python3 "$SCRIPT_DIR/mddocgen.py" "$SOURCE_FILE" \
+		| pandoc -f markdown -o "$DOC_FILE" --metadata title="$SOURCE_BASENAME" -s
+done
